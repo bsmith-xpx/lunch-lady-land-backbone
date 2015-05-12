@@ -1,0 +1,76 @@
+<html>
+<head>
+<script src="lib/jquery-2.1.3.js"></script>
+<script src="lib/underscore.js"></script>
+<script src="lib/backbone.js"> </script>
+
+</head>
+<body>
+<h1>Offices</h1>
+
+<hr/>
+<h3>View</h3>
+<div id="officeView"></div>
+<hr/>
+<h3>Add</h3>
+<form>
+	Name: <input id="addName"/><br/>
+	Phone: <input id="addPhone"/> <br/>
+	Address: <input id="addAddress"/><br/>
+	<input id="addButton" type="button" value="ADD"/>
+</form>
+<script>
+var OfficeModel = Backbone.Model.extend({
+	urlRoot: 'http://localhost:4968/v1/office',
+	defaults:{
+		phone: null, 
+		address: null, 
+		name: null
+	}
+});
+
+var OfficeCollection = Backbone.Collection.extend({
+	url: 'http://localhost:4968/v1/office',
+	model: OfficeModel
+});
+
+
+var OfficeView = Backbone.View.extend({
+	el: '#officeView', 
+	initialize: function(){
+		this.listenTo(this.collection, 'sync', this.render);
+		this.collection.fetch();
+		this.render();
+	},
+	
+	render: function(){
+		var html = '<table><tr><th>ID</th><th>Name</th><th>Phone Number</th><th>Address</th></tr>';
+		this.collection.each(function(office){
+			html = html + "<tr><td>" + office.get('id') + "</td><td>" + office.get('name') + "</td><td>" + office.get('phone') + "</td><td>" + office.get('address') + "</td><td><input class='deleteButton' type='button' value='Delete' data-id=" + office.get('id') + " /></td></tr>";
+		});
+		html = html + "</table>";
+		this.$el.html(html);
+		$(".deleteButton").click(function (){
+			var id = $(this).attr("data-id");
+			var toRemove = offices.get(id);
+			toRemove.destroy();
+			officeView.render();
+		});
+		return html;
+	}
+});
+
+
+var offices = new OfficeCollection();
+var officeView = new OfficeView({collection: offices});
+
+$(document).ready(function (){
+	$("#addButton").click(function(){
+		offices.create({ name: $("#addName").val(), phone: $("#addPhone").val(), address: $("#addAddress").val()}); 
+		
+	});
+});
+
+</script>
+</body>
+</html>
