@@ -12,13 +12,25 @@
 <h3>View</h3>
 <div id="officeView"></div>
 <hr/>
-<h3>Add</h3>
-<form>
+<div id="addPanel">
+	<h3>Add</h3>
 	Name: <input id="addName"/><br/>
 	Phone: <input id="addPhone"/> <br/>
 	Address: <input id="addAddress"/><br/>
-	<input id="addButton" type="button" value="ADD"/>
-</form>
+	<input id="addButton" type="button" value="Add"/>
+</div>
+
+<div id="editPanel" >
+	<h3>Edit</h3>
+	Id: <input id="editId" readonly="true"/><br/>
+	Name: <input id="editName"/><br/>
+	Phone: <input id="editPhone"/> <br/>
+	Address: <input id="editAddress"/><br/>
+	<input id="editSubmitButton" type="button" value="Submit"/><input id="editCancelButton" type="button" value="Cancel"/>
+	
+	
+</div>
+
 <script>
 var OfficeModel = Backbone.Model.extend({
 	urlRoot: 'http://localhost:4968/v1/office',
@@ -46,7 +58,7 @@ var OfficeView = Backbone.View.extend({
 	render: function(){
 		var html = '<table><tr><th>ID</th><th>Name</th><th>Phone Number</th><th>Address</th></tr>';
 		this.collection.each(function(office){
-			html = html + "<tr><td>" + office.get('id') + "</td><td>" + office.get('name') + "</td><td>" + office.get('phone') + "</td><td>" + office.get('address') + "</td><td><input class='deleteButton' type='button' value='Delete' data-id=" + office.get('id') + " /></td></tr>";
+			html = html + "<tr><td>" + office.get('id') + "</td><td>" + office.get('name') + "</td><td>" + office.get('phone') + "</td><td>" + office.get('address') + "</td><td><input class='editButton' type='button' value='Edit' data-id=" + office.get('id') + " /></td><td><input class='deleteButton' type='button' value='Delete' data-id=" + office.get('id') + " /></td></tr>";
 		});
 		html = html + "</table>";
 		this.$el.html(html);
@@ -56,18 +68,52 @@ var OfficeView = Backbone.View.extend({
 			toRemove.destroy();
 			officeView.render();
 		});
+		
+		$(".editButton").click(function(){
+			showEdit($(this).attr("data-id"));
+		});
 		return html;
 	}
 });
+
+function showEdit(id){
+	$("#addPanel").hide();
+	$("#editPanel").show();
+	
+	var toEdit = offices.get(id);
+	$("#editId").val(id);
+	$("#editName").val(toEdit.get("name"));
+	$("#editPhone").val(toEdit.get("phone"));
+	$("#editAddress").val(toEdit.get("address"));
+	
+	
+}
+
+function cancelEdit(){
+	$("#addPanel").show();
+	$("#editPanel").hide();
+	
+}
 
 
 var offices = new OfficeCollection();
 var officeView = new OfficeView({collection: offices});
 
 $(document).ready(function (){
+	$("#editPanel").hide();
+
 	$("#addButton").click(function(){
 		offices.create({ name: $("#addName").val(), phone: $("#addPhone").val(), address: $("#addAddress").val()}); 
 		
+	});
+	
+	$("#editSubmitButton").click(function(){
+		var toEdit = offices.get($("#editId").val());
+		toEdit.save({ name: $("#editName").val(), phone: $("#editPhone").val(), address: $("#editAddress").val()});
+	});
+	
+	$("#editCancelButton").click(function(){
+		cancelEdit();
 	});
 });
 
